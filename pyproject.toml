@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "diplom-p2"
+version = "0.1.0"
+description = ""
+authors = ["Pavel <pashapasha-2013@mail.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
