@@ -37,6 +37,10 @@ class BasicTriangleObject:
         y3 = y + r * math.sin(math.radians(dir + 240))
         return (x1, y1), (x2, y2), (x3, y3)
     
+    def move(self):
+        self.cx +=1
+        self.cy +=1
+    
     def draw(self, screen: pygame.Surface):
         pygame.draw.polygon(screen, self.color, BasicTriangleObject.calculate_triangle_points(self.cx, self.cy, self.rad, self.dir))
 
@@ -60,5 +64,31 @@ class Robot:
     def draw(self, screen: pygame.Surface):
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.rad)
         self.head.draw(screen)
+
+class Button:
+    def __init__(self, x, y, width, height, text, color) -> None:
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+        self.color = color
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.is_hovered = False
+
+    def draw(self, screen:pygame.Surface):
+        pygame.draw.rect(screen, self.color, self.rect)
+        font_surface = pygame.font.Font('fonts/Roboto-Black.ttf', 30).render(self.text, False, 'White')
+        screen.blit(font_surface, (self.x + self.width/4, self.y + self.height / 4))
         
+    def check_hover(self, mouse_pos):
+        self.is_hovered = self.rect.collidepoint(mouse_pos)
+        if self.is_hovered:
+            self.text = 'idi naxyi'
+        else:
+            self.text = 'OGO'
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered:
+            print('zalupa')
 
