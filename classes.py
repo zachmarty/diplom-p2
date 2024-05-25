@@ -3,6 +3,11 @@ import pygame
 import math
 
 
+class Point:
+    def __init__(self, x, y) -> None:
+        self.x = x
+        self.y = y
+
 class BasicSquareObject:
     def __init__(
         self, size: tuple = (10, 10), color: str = "Black", cords: tuple = (0, 0)
@@ -75,13 +80,25 @@ class Robot:
             self.calculate_triangle_head(self.x, self.y, self.rad, self.dir),
             -self.dir,
         )
+        self.target = None
+
+    def make_bet(self, point : Point):
+        distance = math.sqrt((self.x - point.x) ** 2 + (self.y - self.y) ** 2)
+        angle = math.atan((point.y - self.y) / (point.x - self.x))
+        if self.x >= point.x and self.y <= point.y:
+            angle += math.pi
+        elif self.x > point.x and self.y > point.y:
+            angle += math.pi
+        distance_bet = distance / 10
+        angle_bet = abs(self.dir * -1 - angle) / 20
+        return math.ceil(distance_bet + angle_bet)
 
     @staticmethod
     def add_random_robot():
         return Robot(
             (random.randint(0, 1500), random.randint(0, 750)),
             random.randint(0, 359),
-            40,
+            20,
         )
 
     @staticmethod
@@ -130,5 +147,37 @@ class Button:
 class MoveTargetButton(Button):
     in_move = False
 
-    def __init__(self, x, y, width, height, text, color) -> None:
-        super().__init__(x, y, width, height, text, color)
+
+class StartSimButton(Button):
+    in_progress = False
+
+
+def calculate_points(base: BasicSquareObject, target: BasicTriangleObject, len : int):
+    distance = math.sqrt((base.x - target.cx) ** 2 + (base.y - target.cy) ** 2)
+    angle = math.atan((target.cy - base.y) / (target.cx - base.x))
+    if base.x >= target.cx and base.y <= target.cy:
+        angle += math.pi
+    elif base.x > target.cx and base.y > target.cy:
+        angle += math.pi
+    count = math.ceil(distance / 200) - 1
+    if count > 1:
+        points = []
+        if count <= len:
+            delta = distance / count
+            for i in range(count):
+                x = base.x + delta * math.cos(angle) * (i + 1)
+                y = base.y + delta * math.sin(angle) * (i + 1)
+                tmp_point = Point(x, y)
+                points.append(tmp_point)
+        else:
+            delta = distance / (len + 1)
+            for i in range(len):
+                x = base.x + delta * math.cos(angle) * (i + 1)
+                y = base.y + delta * math.sin(angle) * (i + 1)
+                tmp_point = Point(x, y)
+                points.append(tmp_point)
+        return points
+        
+    else:
+        return []
+    # line = Line()
