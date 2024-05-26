@@ -135,7 +135,16 @@ while running:
                         robots.pop(i)
                         break
             for i in range(len(robots)):
-                robots[0].target = Point(base.x, base.y)
+                base_distance = math.sqrt(
+                    (robots[0].x - base.x) ** 2 + (robots[0].y - base.y) ** 2
+                )
+                target_distance = math.sqrt(
+                    (robots[0].x - target.cx) ** 2 + (robots[0].y - target.cy) ** 2
+                )
+                if base_distance > target_distance:
+                    robots[0].target = Point(target.cx, target.cy)
+                else:
+                    robots[0].target = Point(base.x, base.y)
                 robots[0].delta = 50
                 inactive_bots.append(robots[0])
                 robots.pop(0)
@@ -143,7 +152,6 @@ while running:
                 robot.dir = math.radians(robot.dir)
             for robot in inactive_bots:
                 robot.dir = math.radians(robot.dir)
-
 
         if event.type == pygame.QUIT:
             running = False
