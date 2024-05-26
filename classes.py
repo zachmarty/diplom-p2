@@ -39,7 +39,7 @@ class BasicTriangleObject:
         self.cx = center_cords[0]
         self.cy = center_cords[1]
         self.rad = radius
-        self.dir = -dir
+        self.dir = dir
         self.visible = True
 
     @staticmethod
@@ -71,16 +71,14 @@ class Robot:
     def __init__(self, cords: tuple = (10, 10), dir: float = 0, rad: int = 20) -> None:
         self.color = "Black"
         self.hed_color = "Red"
-        self.dir = -1 * dir
+        self.dir = dir
         self.x = cords[0]
         self.y = cords[1]
         self.rad = rad
-        self.head = BasicTriangleObject(
-            self.rad / 2,
-            self.calculate_triangle_head(self.x, self.y, self.rad, self.dir),
-            -self.dir,
-        )
         self.target = None
+        self.aligned = False
+        self.on_target = False
+        self.delta = 0
 
     def make_bet(self, point : Point):
         distance = math.sqrt((self.x - point.x) ** 2 + (self.y - self.y) ** 2)
@@ -90,7 +88,7 @@ class Robot:
         elif self.x > point.x and self.y > point.y:
             angle += math.pi
         distance_bet = distance / 10
-        angle_bet = abs(self.dir * -1 - angle) / 20
+        angle_bet = abs(math.radians(self.dir) * -1 - angle) / 20
         return math.ceil(distance_bet + angle_bet)
 
     @staticmethod
@@ -109,7 +107,32 @@ class Robot:
 
     def draw(self, screen: pygame.Surface):
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.rad)
-        self.head.draw(screen)
+        head_x = self.x + self.rad * math.cos(self.dir)
+        head_y = self.y + self.rad * math.sin(self.dir)
+        pygame.draw.polygon(screen, "Red", BasicTriangleObject.calculate_triangle_points(head_x, head_y, self.rad/2, math.degrees(self.dir)))
+
+    def rotate(self):
+        if not self.aligned:
+            angle = math.atan((self.target.y - self.y) / (self.target.x - self.x))
+            if self.x >= self.target.x and self.y <= self.target.y:
+                angle += math.pi
+            elif self.x > self.target.x and self.y > self.target.y:
+                angle += math.pi
+            if angle < self.dir:
+                self.dir -= 0.02
+            else:
+                self.dir += 0.02
+            if abs(angle - self.dir) <=0.05:
+                self.aligned = True
+                self.dir = angle
+
+    def move_to_target(self):
+        self.x += 2 * math.cos(self.dir)
+        self.y += 2 * math.sin(self.dir)
+        remain_distance = math.sqrt( (self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2)
+        if  remain_distance <= self.delta:
+            self.on_target = True
+
 
 
 class Button:
@@ -122,6 +145,7 @@ class Button:
         self.color = color
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.is_hovered = False
+        
 
     def draw(self, screen: pygame.Surface):
         pygame.draw.rect(screen, self.color, self.rect)
@@ -160,11 +184,11 @@ def calculate_points(base: BasicSquareObject, target: BasicTriangleObject, len :
     elif base.x > target.cx and base.y > target.cy:
         angle += math.pi
     count = math.ceil(distance / 200) - 1
-    if count > 1:
+    if count >1 :
         points = []
         if count <= len:
-            delta = distance / count
-            for i in range(count):
+            delta = distance / count + 1
+            for i in range(count - 1):
                 x = base.x + delta * math.cos(angle) * (i + 1)
                 y = base.y + delta * math.sin(angle) * (i + 1)
                 tmp_point = Point(x, y)

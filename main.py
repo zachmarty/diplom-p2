@@ -29,6 +29,42 @@ while running:
     if len(robots) > 0:
         for robot in robots:
             robot.draw(screen)
+    if StartSimButton.in_progress:
+        flag = True
+        for robot in active_bots:
+            if not robot.aligned:
+                robot.rotate()
+            else:
+                if not robot.on_target:
+                    robot.move_to_target()
+            robot.draw(screen)
+            if not robot.on_target:
+                flag = False
+        for robot in inactive_bots:
+            if not robot.aligned:
+                robot.rotate()
+            else:
+                if not robot.on_target:
+                    robot.move_to_target()
+            robot.draw(screen)
+            if not robot.on_target:
+                flag = False
+        if flag:
+            StartSimButton.in_progress = False
+            for i in range(len(active_bots)):
+                active_bots[0].target = None
+                active_bots[0].aligned = False
+                active_bots[0].on_target = False
+                active_bots[0].delta = 0
+                robots.append(active_bots[0])
+                active_bots.pop(0)
+            for i in range(len(inactive_bots)):
+                inactive_bots[0].target = None
+                inactive_bots[0].aligned = False
+                inactive_bots[0].on_target = False
+                inactive_bots[0].delta = 0
+                robots.append(inactive_bots[0])
+                inactive_bots.pop(0)
     clock.tick(60)
     add_button.check_hover(pygame.mouse.get_pos())
     remove_button.check_hover(pygame.mouse.get_pos())
@@ -93,12 +129,20 @@ while running:
                         min_bet = tmp_bet
                 for i in range(len(robots)):
                     if min_bet == robots[i].make_bet(point):
+                        robots[i].target = point
+                        robots[i].delta = 5
                         active_bots.append(robots[i])
                         robots.pop(i)
                         break
             for i in range(len(robots)):
+                robots[0].target = Point(base.x, base.y)
+                robots[0].delta = 50
                 inactive_bots.append(robots[0])
                 robots.pop(0)
+            for robot in active_bots:
+                robot.dir = math.radians(robot.dir)
+            for robot in inactive_bots:
+                robot.dir = math.radians(robot.dir)
 
 
         if event.type == pygame.QUIT:
