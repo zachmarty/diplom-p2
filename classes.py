@@ -1,12 +1,77 @@
 import random
 import pygame
 import math
+from math import cos, sin, radians, sqrt, atan, degrees, pi
 
 
 class Point:
     def __init__(self, x, y) -> None:
         self.x = x
         self.y = y
+
+
+class BaseSquare:
+    def __init__(self, size : tuple = (10, 10), color : str = "Black", cords : tuple = (50, 50), dir : int = 0):
+        self.length = size[0]
+        self.width = size[1]
+        self.color = color
+        self.x = cords[0]
+        self.y = cords[1]
+        self.dir = dir
+        self.visible = True
+
+    def update_cords(self, x, y, dir):
+        self.x = x
+        self.y = y
+        self.dir = dir
+
+    def calculate_square_points(self):
+        len = sqrt((self.length / 2) ** 2 + (self.width / 2) ** 2)
+        angle = atan(self.width / self.length)
+        dir = radians(self.dir)
+
+        x1 = len * cos(dir + angle) + self.x
+        y1 = len * sin(dir + angle) + self.y
+
+        x2 = len * cos(dir + pi - angle) + self.x
+        y2 = len * sin(dir + pi - angle) + self.y
+
+        x3 = len * cos(dir + pi + angle) + self.x
+        y3 = len * sin(dir + pi + angle) + self.y
+
+        x4 = len * cos(dir - angle) + self.x
+        y4 = len * sin(dir - angle) + self.y
+
+        return [x1, y1], [x2, y2], [x3, y3], [x4, y4]
+    
+    def draw(self, screen: pygame.Surface):
+        if self.visible:
+            pygame.draw.polygon(
+                screen,
+                self.color,
+                self.calculate_square_points()
+            )
+
+class Robot(BaseSquare):
+    def __init__(self, wheel1 : BaseSquare, wheel2 : BaseSquare, size = (10, 10), color = "Black", cords = (50, 50), dir : int = 0):
+        super().__init__(size, color, cords)
+        self.rwheel = wheel1
+        self.lwheel = wheel2
+        self.gip = sqrt((self.length / 4 + wheel1.length / 2) ** 2 + (self.width / 4 + wheel1.width / 2) ** 2)
+        self.rwheel.update_cords(self.x + self.gip * cos(radians(self.dir)), self.y + self.gip * sin(radians(self.dir)), dir)
+        self.lwheel.update_cords(self.x - self.gip * cos(radians(self.dir + 180)), self.y + self.gip * sin(radians(self.dir + 180)), dir + 180)
+
+    def update_cords(self, x, y, dir):
+        super().update_cords(x, y, dir)
+        self.rwheel.update_cords(self.x + self.gip * cos(radians(self.dir)), self.y + self.gip * sin(radians(self.dir)), dir)
+        self.lwheel.update_cords(self.x - self.gip * cos(radians(self.dir)), self.y - self.gip* sin(radians(self.dir)), dir)
+
+
+    def draw(self, screen):
+        super().draw(screen)
+        self.rwheel.draw(screen)
+        self.lwheel.draw(screen)
+        
 
 class BasicSquareObject:
     def __init__(
@@ -67,71 +132,71 @@ class BasicTriangleObject:
             )
 
 
-class Robot:
-    def __init__(self, cords: tuple = (10, 10), dir: float = 0, rad: int = 20) -> None:
-        self.color = "Black"
-        self.hed_color = "Red"
-        self.dir = dir
-        self.x = cords[0]
-        self.y = cords[1]
-        self.rad = rad
-        self.target = None
-        self.aligned = False
-        self.on_target = False
-        self.delta = 0
+# class Robot:
+#     def __init__(self, cords: tuple = (10, 10), dir: float = 0, rad: int = 20) -> None:
+#         self.color = "Black"
+#         self.hed_color = "Red"
+#         self.dir = dir
+#         self.x = cords[0]
+#         self.y = cords[1]
+#         self.rad = rad
+#         self.target = None
+#         self.aligned = False
+#         self.on_target = False
+#         self.delta = 0
 
-    def make_bet(self, point : Point):
-        distance = math.sqrt((self.x - point.x) ** 2 + (self.y - self.y) ** 2)
-        angle = math.atan((point.y - self.y) / (point.x - self.x))
-        if self.x >= point.x and self.y <= point.y:
-            angle += math.pi
-        elif self.x > point.x and self.y > point.y:
-            angle += math.pi
-        distance_bet = distance / 10
-        angle_bet = abs(math.radians(self.dir) * -1 - angle) / 20
-        return math.ceil(distance_bet + angle_bet)
+#     def make_bet(self, point : Point):
+#         distance = math.sqrt((self.x - point.x) ** 2 + (self.y - self.y) ** 2)
+#         angle = math.atan((point.y - self.y) / (point.x - self.x))
+#         if self.x >= point.x and self.y <= point.y:
+#             angle += math.pi
+#         elif self.x > point.x and self.y > point.y:
+#             angle += math.pi
+#         distance_bet = distance / 10
+#         angle_bet = abs(math.radians(self.dir) * -1 - angle) / 20
+#         return math.ceil(distance_bet + angle_bet)
 
-    @staticmethod
-    def add_random_robot():
-        return Robot(
-            (random.randint(0, 1500), random.randint(0, 750)),
-            random.randint(0, 359),
-            20,
-        )
+#     @staticmethod
+#     def add_random_robot():
+#         return Robot(
+#             (random.randint(0, 1500), random.randint(0, 750)),
+#             random.randint(0, 359),
+#             20,
+#         )
 
-    @staticmethod
-    def calculate_triangle_head(x, y, rad, dir):
-        xc = x + rad * math.cos(math.radians(dir))
-        yc = y + rad * math.sin(math.radians(dir))
-        return (xc, yc)
+#     @staticmethod
+#     def calculate_triangle_head(x, y, rad, dir):
+#         xc = x + rad * math.cos(math.radians(dir))
+#         yc = y + rad * math.sin(math.radians(dir))
+#         return (xc, yc)
 
-    def draw(self, screen: pygame.Surface):
-        pygame.draw.circle(screen, self.color, (self.x, self.y), self.rad)
-        head_x = self.x + self.rad * math.cos(self.dir)
-        head_y = self.y + self.rad * math.sin(self.dir)
-        pygame.draw.polygon(screen, "Red", BasicTriangleObject.calculate_triangle_points(head_x, head_y, self.rad/2, math.degrees(self.dir)))
+#     def draw(self, screen: pygame.Surface):
+#         pygame.draw.circle(screen, self.color, (self.x, self.y), self.rad)
+#         head_x = self.x + self.rad * math.cos(self.dir)
+#         head_y = self.y + self.rad * math.sin(self.dir)
+#         pygame.draw.polygon(screen, "Red", BasicTriangleObject.calculate_triangle_points(head_x, head_y, self.rad/2, math.degrees(self.dir)))
 
-    def rotate(self):
-        if not self.aligned:
-            angle = math.atan((self.target.y - self.y) / (self.target.x - self.x))
-            if self.x >= self.target.x and self.y <= self.target.y:
-                angle += math.pi
-            elif self.x > self.target.x and self.y > self.target.y:
-                angle += math.pi
-            if angle < self.dir:
-                self.dir -= 0.02
-            else:
-                self.dir += 0.02
-            if abs(angle - self.dir) <=0.05:
-                self.aligned = True
-                self.dir = angle
+#     def rotate(self):
+#         if not self.aligned:
+#             angle = math.atan((self.target.y - self.y) / (self.target.x - self.x))
+#             if self.x >= self.target.x and self.y <= self.target.y:
+#                 angle += math.pi
+#             elif self.x > self.target.x and self.y > self.target.y:
+#                 angle += math.pi
+#             if angle < self.dir:
+#                 self.dir -= 0.02
+#             else:
+#                 self.dir += 0.02
+#             if abs(angle - self.dir) <=0.05:
+#                 self.aligned = True
+#                 self.dir = angle
 
-    def move_to_target(self):
-        self.x += 2 * math.cos(self.dir)
-        self.y += 2 * math.sin(self.dir)
-        remain_distance = math.sqrt( (self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2)
-        if  remain_distance <= self.delta:
-            self.on_target = True
+#     def move_to_target(self):
+#         self.x += 2 * math.cos(self.dir)
+#         self.y += 2 * math.sin(self.dir)
+#         remain_distance = math.sqrt( (self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2)
+#         if  remain_distance <= self.delta:
+#             self.on_target = True
 
 
 
