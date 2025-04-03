@@ -3,16 +3,22 @@ from classes import *
 
 pygame.init()
 clock = pygame.time.Clock()
-screen = pygame.display.set_mode((1500, 750))
+info = pygame.display.Info()
+w = info.current_w
+h = info.current_h
+screen = pygame.display.set_mode((w, h), pygame.FULLSCREEN | pygame.SCALED)
+screen_size = [screen.get_width(), screen.get_height()]
 screen.fill((255, 255, 255))
-base = BasicSquareObject((50, 50), "Black", (725, 355))
-target = BasicTriangleObject(30, [200, 200], 90)
+x_size = screen_size[0] / 4
+y_size = screen_size[1] / 3 / 5
+target = TriangleTarget(25, (500, 500))
+base = BaseTarget()
 robots = []
-add_button = Button(1200, 0, 300, 50, "Добавить", "Green")
-remove_button = Button(1200, 50, 300, 50, "Удалить", "Red")
-move_target_button = MoveTargetButton(1200, 150, 300, 50, "Цель", "Red")
-move_base_button = MoveTargetButton(1200, 100, 300, 50, "База", "Black")
-start_button = StartSimButton(1200, 200, 300, 50, "Начать", "Green")
+add_button = Button(screen_size[0] - x_size, 0, x_size, y_size, "Добавить", screen_size[1] / 25, "Green")
+remove_button = Button(screen_size[0] - x_size, y_size, x_size, y_size, "Удалить",screen_size[1] / 25, "Red")
+move_target_button = MoveTargetButton(screen_size[0] - x_size, 2 * y_size, x_size, y_size, "Цель",screen_size[1] / 25, "Red")
+move_base_button = MoveTargetButton(screen_size[0] - x_size, 3 * y_size, x_size, y_size, "База", screen_size[1] / 25, "Black")
+start_button = StartSimButton(screen_size[0] - x_size, 4 * y_size, x_size, y_size, "Начать",screen_size[1] / 25, "Green")
 active_bots = []
 inactive_bots = []
 running = True
@@ -33,36 +39,36 @@ while running:
         flag = True
         for robot in active_bots:
             if not robot.aligned:
-                robot.rotate()
+                robot.rotate_to_target()
             else:
                 if not robot.on_target:
-                    robot.move_to_target()
+                    robot.drive_to_target()
             robot.draw(screen)
             if not robot.on_target:
                 flag = False
         for robot in inactive_bots:
             if not robot.aligned:
-                robot.rotate()
+                robot.rotate_to_target()
             else:
                 if not robot.on_target:
-                    robot.move_to_target()
+                    robot.drive_to_target()
             robot.draw(screen)
             if not robot.on_target:
                 flag = False
         if flag:
             StartSimButton.in_progress = False
             for i in range(len(active_bots)):
-                active_bots[0].target = None
+                active_bots[0].target_x = None
+                active_bots[0].target_y = None
                 active_bots[0].aligned = False
                 active_bots[0].on_target = False
-                active_bots[0].delta = 0
                 robots.append(active_bots[0])
                 active_bots.pop(0)
             for i in range(len(inactive_bots)):
-                inactive_bots[0].target = None
+                inactive_bots[0].target_x = None
+                inactive_bots[0].target_y = None
                 inactive_bots[0].aligned = False
                 inactive_bots[0].on_target = False
-                inactive_bots[0].delta = 0
                 robots.append(inactive_bots[0])
                 inactive_bots.pop(0)
     clock.tick(60)
@@ -78,11 +84,11 @@ while running:
         if (
             event.type == pygame.MOUSEBUTTONDOWN
             and MoveTargetButton.in_move
-            and not (cords[0] in range(1200, 1500) and cords[1] in range(0, 300))
+            and not (cords[0] in range(int(w - x_size), w) and cords[1] in range(0, int(y_size)))
         ):
             MoveTargetButton.in_move = False
             if base.visible:
-                target.set_cords(cords=cords)
+                target.set_cords(cords[0], cords[1])
                 target.visible = True
             else:
                 base.set_cords(pygame.mouse.get_pos())
@@ -92,7 +98,7 @@ while running:
             and not (MoveTargetButton.in_move)
             and not (StartSimButton.in_progress)
         ):
-            robots.append(Robot.add_random_robot())
+            robots.append(Robot.create_random_robot(w, h))
         if (
             remove_button.handle_event(event=event)
             and len(robots) > 0
@@ -129,29 +135,26 @@ while running:
                         min_bet = tmp_bet
                 for i in range(len(robots)):
                     if min_bet == robots[i].make_bet(point):
-                        robots[i].target = point
-                        robots[i].delta = 5
+                        robots[i].target_x = point.x
+                        robots[i].target_y = point.y
                         active_bots.append(robots[i])
                         robots.pop(i)
                         break
             for i in range(len(robots)):
-                base_distance = math.sqrt(
+                base_distance = sqrt(
                     (robots[0].x - base.x) ** 2 + (robots[0].y - base.y) ** 2
                 )
-                target_distance = math.sqrt(
+                target_distance = sqrt(
                     (robots[0].x - target.cx) ** 2 + (robots[0].y - target.cy) ** 2
                 )
                 if base_distance > target_distance:
-                    robots[0].target = Point(target.cx, target.cy)
+                    robots[0].target_x = target.cx
+                    robots[0].target_y = target.cy
                 else:
-                    robots[0].target = Point(base.x, base.y)
-                robots[0].delta = 50
+                    robots[0].target_x = base.x
+                    robots[0].target_y = base.y
                 inactive_bots.append(robots[0])
                 robots.pop(0)
-            for robot in active_bots:
-                robot.dir = math.radians(robot.dir)
-            for robot in inactive_bots:
-                robot.dir = math.radians(robot.dir)
 
         if event.type == pygame.QUIT:
             running = False

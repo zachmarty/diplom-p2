@@ -15,9 +15,9 @@ robot = Robot.create_default_robot(dir = 0)
 x_size = screen_size[0] / 4
 y_size = screen_size[1] / 3 / 5
 button = Button(screen_size[0] - x_size, 0, x_size, y_size, 'test', screen_size[1] / 25, 'black')
-target = TriangleTarget(25, 500, 500)
+target = TriangleTarget(25, (500, 500))
 base = BaseTarget()
-robot.set_target(400, 499)
+robot.set_target(350, 350)
 running = True
 while running:
     screen.fill("White")
@@ -26,8 +26,8 @@ while running:
     robot.draw(screen)
     button.draw(screen)
     target.draw(screen)
-    if not robot.aligned:
-        robot.rotate_to_target()
+    if not robot.on_target:
+        robot.move_to_target()
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
