@@ -231,7 +231,7 @@ class Robot:
     def drive_to_target(self):
         if not self.on_target:
             path = sqrt((self.x - self.target_x) ** 2 + (self.y - self.target_y) ** 2)
-            if abs(path - self.brake_distance) > 0.03 and not self.braking:
+            if abs(path - self.brake_distance) > 0.06 and not self.braking:
                 tau1 = self.move_time
                 tau2 = tau1 + 1 / TICKS
                 if tau2 > self.linear_time:
@@ -247,7 +247,7 @@ class Robot:
                 self.move_time = tau2
             elif not self.braking:
                 self.braking = True
-            elif self.braking and path > 0.03:
+            elif self.braking and path > 0.1:
                 tau1 = self.brake_time
                 tau2 = tau1 + 1 / TICKS
                 delta = self.current_speed * tau2 - self.linear_acc * tau2 ** 2 /2 - self.current_speed * tau1 + self.linear_acc * tau1 ** 2 / 2
@@ -272,15 +272,13 @@ class Robot:
                 if self.target_x - self.x == 0
                 else atan((self.target_y - self.y) / (self.target_x - self.x))
             )
-            if self.x > self.target_x and self.y > self.target_y:
+            if self.x > self.target_x and self.y < self.target_y:
                 target_dir = pi + target_dir
-            elif self.target_x > self.target_x and self.target_y < self.target_y:
+            elif self.x > self.target_x and self.y > self.target_y:
                 target_dir = - pi + target_dir
-            if target_dir > pi:
-                target_dir = -2 * pi +target_dir
             angle = self.dir
             movement_to = 1 if target_dir > angle else -1
-            if abs(abs(target_dir - angle) - self.brake_distance) > 0.03 and not self.braking:
+            if abs(abs(target_dir - angle) - self.brake_distance) > 0.02 and not self.braking:
                 tau1 = self.move_time
                 tau2 = tau1 + 1 / TICKS
                 if tau2 > self.ratio_time:
@@ -295,7 +293,7 @@ class Robot:
                 self.move_time = tau2
             elif not self.braking:
                 self.braking = True
-            elif self.braking and abs(target_dir - angle) > 0.05:
+            elif self.braking and abs(target_dir - angle) > 0.08:
                 tau1 = self.brake_time
                 tau2 = tau1 + 1 / TICKS
                 delta = self.current_speed * tau2 - self.ratio_acc * tau2 ** 2 / 2 - self.current_speed * tau1 + self.ratio_acc * tau1 ** 2 / 2
@@ -323,8 +321,8 @@ class Robot:
              angle += pi
         elif self.x > point.x and self.y > point.y:
              angle += pi
-        distance_bet = distance / 10
-        angle_bet = abs(self.dir * -1 - angle) / 20
+        distance_bet = distance / 2
+        angle_bet = abs(self.dir * -1 - angle) / 10
         return ceil(distance_bet + angle_bet)
 
 # class Robot(BaseSquare):

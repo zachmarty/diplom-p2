@@ -71,7 +71,7 @@ while running:
                 inactive_bots[0].on_target = False
                 robots.append(inactive_bots[0])
                 inactive_bots.pop(0)
-    clock.tick(60)
+    clock.tick(TICKS)
     add_button.check_hover(pygame.mouse.get_pos())
     remove_button.check_hover(pygame.mouse.get_pos())
     move_target_button.check_hover(pygame.mouse.get_pos())
