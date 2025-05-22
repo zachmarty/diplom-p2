@@ -312,39 +312,6 @@ class Robot:
             self.rotate_to_target()
         else:
             self.drive_to_target()
-    
-    
-    def make_bet(self, point : Point):
-        distance = sqrt((self.x - point.x) ** 2 + (self.y - self.y) ** 2)
-        angle = atan((point.y - self.y) / (point.x - self.x))
-        if self.x >= point.x and self.y <= point.y:
-             angle += pi
-        elif self.x > point.x and self.y > point.y:
-             angle += pi
-        distance_bet = distance / 2
-        angle_bet = abs(self.dir * -1 - angle) / 10
-        return ceil(distance_bet + angle_bet)
-
-# class Robot(BaseSquare):
-#     def __init__(self, wheel1 : BaseSquare, wheel2 : BaseSquare, size = (LENGTH, WIDTH), color = "Red", cords = (50, 50), dir : int = 0):
-#         super().__init__(size, color, cords)
-#         self.rwheel = wheel1
-#         self.lwheel = wheel2
-#         self.gip = self.length / 2 + wheel1.length / 2
-#         self.rwheel.update_cords(self.x + self.gip * cos(radians(self.dir)), self.y + self.gip * sin(radians(self.dir)), dir)
-#         self.lwheel.update_cords(self.x - self.gip * cos(radians(self.dir)), self.y - self.gip* sin(radians(self.dir)), dir)
-
-#     def update_cords(self, x, y, dir):
-#         super().update_cords(x, y, dir)
-#         self.rwheel.update_cords(self.x + self.gip * cos(radians(self.dir)), self.y + self.gip * sin(radians(self.dir)), dir)
-#         self.lwheel.update_cords(self.x - self.gip * cos(radians(self.dir)), self.y - self.gip* sin(radians(self.dir)), dir)
-
-
-#     def draw(self, screen):
-#         super().draw(screen)
-#         self.rwheel.draw(screen)
-#         self.lwheel.draw(screen)
-
 
 class Button:
     def __init__(self, x, y, width, height, text, text_size, color) -> None:
@@ -420,33 +387,3 @@ class MoveTargetButton(Button):
 
 class StartSimButton(Button):
     in_progress = False
-
-
-def calculate_points(base: BaseTarget, target: TriangleTarget, len: int):
-    distance = sqrt((base.x - target.cx) ** 2 + (base.y - target.cy) ** 2)
-    angle = atan((target.cy - base.y) / (target.cx - base.x))
-    if base.x >= target.cx and base.y <= target.cy:
-        angle += pi
-    elif base.x > target.cx and base.y > target.cy:
-        angle += pi
-    count = ceil(distance / 200) - 1
-    if count > 1:
-        points = []
-        if count <= len:
-            delta = distance / count + 1
-            for i in range(count - 1):
-                x = base.x + delta * cos(angle) * (i + 1)
-                y = base.y + delta * sin(angle) * (i + 1)
-                tmp_point = Point(x, y)
-                points.append(tmp_point)
-        else:
-            delta = distance / (len + 1)
-            for i in range(len):
-                x = base.x + delta * cos(angle) * (i + 1)
-                y = base.y + delta * sin(angle) * (i + 1)
-                tmp_point = Point(x, y)
-                points.append(tmp_point)
-        return points
-
-    else:
-        return []
